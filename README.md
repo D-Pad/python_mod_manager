@@ -102,3 +102,5 @@ Such as...<br>
   "tomb_raider": ["tr"]
 }
 ```
+This will allow you to enable or disable a mod by running a shorter command, like<br>
+`gamemod tr god_mode -e` rather than `gamemod tome_raider god_mode -e`
