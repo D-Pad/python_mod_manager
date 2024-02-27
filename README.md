@@ -90,3 +90,15 @@ exit
 Examples:<br>
 `gamemod palworld -v`<br>
 `gamemod palworld infinite_ammo --enable`
+
+
+# Aliases
+The aliases.json file is simply there to make it easier to enable and disable mods.<br>
+Create your own by adding new lines to the json file. Many can be added for each game.<br>
+Such as...<br>
+```json
+{
+  "palworld": ["pw", "pal"],
+  "tomb_raider": ["tr"]
+}
+```
