@@ -30,7 +30,7 @@ class ModManager:
         arg = ""
         if path.isdir(src_path):
             arg = "-r "
-        system(f"cp {arg}{src_path} {dst_path}")
+        system(f"cp {arg}'{src_path}' '{dst_path}'")
 
     @staticmethod
     def remove_file(src_path):
@@ -38,14 +38,28 @@ class ModManager:
 
     def enable_mods(self, _game=None, _mod=None):
 
-        def move_files(location, mode: bool):
-            if mode:
-                if not path.exists(location['game_path']):
-                    self.copy_file(location['mod_path'], location['game_path'])
+        def move_files(location, move_mode: bool, special_behavior=None):
+            if special_behavior is None:
+                if move_mode:
+                    if not path.exists(location['game_path']):
+                        self.copy_file(location['mod_path'], location['game_path'])
+
+                else:
+                    if path.exists(location['game_path']):
+                        self.remove_file(location['game_path'])
 
             else:
-                if path.exists(location['game_path']):
-                    self.remove_file(location['game_path'])
+                if special_behavior.lower() == "backup":
+
+                    # If enabling the mod
+                    if move_mode:
+                        self.remove_file(location["game_path"])
+                        self.copy_file(location["mod_path"], location["game_path"])
+
+                    else:
+                        # Remove the file from the game path, then restore the backup file
+                        self.remove_file(location["game_path"])
+                        self.copy_file(location["backup_path"], location["game_path"])
 
         def get_color(mode):
             if mode:
@@ -53,12 +67,16 @@ class ModManager:
             else:
                 return "red"
 
-        if _game is not None:
-            game_settings = {_game: self.settings[_game]}
-            if _mod is not None:
-                game_settings = {_game: {_mod: self.settings[_game][_mod]}}
-        else:
-            game_settings = self.settings
+        try:
+            if _game is not None:
+                game_settings = {_game: self.settings[_game]}
+                if _mod is not None:
+                    game_settings = {_game: {_mod: self.settings[_game][_mod]}}
+            else:
+                game_settings = self.settings
+
+        except KeyError:
+            return
 
         for game, settings in game_settings.items():
             for mod, options in settings.items():
@@ -94,26 +112,32 @@ class ModManager:
                 g_path = options['game_path']
                 b_path = options['mod_path']
                 status = options['enabled']
+                mode = None
+                if "backup_path" in options.keys():
+                    mode = "backup"
 
                 if isinstance(g_path, str) and isinstance(b_path, str):
-                    move_files(options, status)
+                    move_files(options, status, mode)
 
                 elif isinstance(g_path, list) and isinstance(b_path, list):
                     for i in range(len(g_path)):
                         src = g_path[i]
                         dst = b_path[i]
                         d = {"game_path": src, "mod_path": dst}
-                        move_files(d, status)
+                        if mode is not None:
+                            d["backup_path"] = options["backup_path"][i]
+
+                        move_files(d, status, mode)
 
                 else:
                     raise ValueError("Paths must be in string format, or list of strings for multiple files")
 
                 if status:
-                    print(dye(f"{game.capitalize()} mod {mod}", "cyan"),
+                    print(dye(f"{game.replace('_', ' ').title()} mod {mod}", "cyan"),
                           dye("enabled", font_color))
 
                 else:
-                    print(dye(f"{game.capitalize()} mod {mod}", "cyan"),
+                    print(dye(f"{game.replace('_', ' ').title()} mod {mod}", "cyan"),
                           dye("disabled", font_color))
 
     def get_mods(self, reset=False):
@@ -182,7 +206,7 @@ class ModManager:
 
     def view_active_mods(self, game, mode):
 
-        if mode == "-v":
+        if mode == "-v" or mode == "--view":
             if game in self.settings.keys():
                 print(dye(f"\n{game.replace('_', ' ').title()} Mods:", "blue"))
                 sp_mult = max([len(i) for i in self.settings[game].keys()])
@@ -195,14 +219,11 @@ class ModManager:
 
 def test():
     """For feature testing"""
-    manager = ModManager()
-    mods = manager.get_mods()
-    print(mods)
+    pass
 
 
 def main():
-    test()
-    exit()
+
     mod_manager = ModManager()
 
     aliases = mod_manager.get_aliases()
