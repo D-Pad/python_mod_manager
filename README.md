@@ -1,4 +1,4 @@
-## How it works
+# How it works
 Open the config_data/mods.json file and view the template. To set up a new mod
 whether it was downloaded or created yourself, simply edit the mods.json file so
 that the mod manager knows where to find the storage location of the mod, as well
@@ -72,7 +72,7 @@ Example:<br>
 `python main.py palworld -v`
 
 
-## Launch script
+# Launch script
 The following bash script can be used to more easily interact with the mod manager
 
 gamemod.sh
